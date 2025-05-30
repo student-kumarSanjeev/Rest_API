@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  </head>
+  <body>
+    <div
+      id="data"
+      class="data flex flex-row flex-wrap align-center justify-start"
+    ></div>
+    <button
+      id="prev"
+      class="mt-[20px] ml-[20px] bg-black p-[10px] rounded-lg text-white cursor-pointer hover:bg-gray-800"
+    >
+      Prev
+    </button>
+    <button
+      id="next"
+      class="mt-[20px] ml-[10px] bg-black p-[10px] rounded-lg text-white cursor-pointer hover:bg-gray-800"
+    >
+      Next
+    </button>
+    <div id="message"></div>
+  </body>
+
+  <script>
+    var page = 1;
+    var container = document.getElementById("data");
+    var nextBtn = document.getElementById("next");
+    var prevBtn = document.getElementById("prev");
+    function fetchData() {
+      fetch(`http://localhost/php-rest-api?page=${page}`)
+        .then((response) => response.json())
+        .then((users) => {
+          console.log(users);
+          let data = users.data;
+          console.log(data);
+          if (data.length > 0) {
+            let html = "";
+            data.forEach((item) => {
+              // console.log(item);
+              html += `
+                <div class="flex h-[300px] w-[300px] flex-col justify-center gap-2 rounded-lg border-1 bg-black text-center text-white mt-[20px] ml-[20px] transition-transform duration-300 hover:scale-105 cursor-pointer">
+                  <h3 class="text-[20px]">Name: ${item.name}</h3>
+                  <h3 class="text-[20px]">Age: ${item.age}</h3>
+                  <h3 class="text-[20px]">City: ${item.city}</h3>
+                </div>
+              `;
+            });
+            container.innerHTML = html;
+            prevBtn.disabled = page === 1;
+            nextBtn.disabled = data.length === 0;
+          } else {
+            nextBtn.disabled = true;
+            container.innerHTML = users.message;
+          }
+        });
+    }
+
+    fetchData();
+
+    nextBtn.addEventListener("click", function () {
+      fetchData(++page);
+    });
+
+    prevBtn.addEventListener("click", function () {
+      if (page > 1) {
+        page--;
+        fetchData();
+      }
+    });
+  </script>
+</html>

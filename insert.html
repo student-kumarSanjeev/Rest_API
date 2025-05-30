@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Insert Rest API</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  </head>
+  <body>
+    <h1 class="text-center text-[20px] mt-[20px] font-bold">Insert Data</h1>
+
+    <form action="" method="post" class="m-[30px] flex flex-col gap-2">
+      <label for="name">Name:</label>
+      <input
+        type="text"
+        name="name"
+        id="name"
+        class="h-[30px] w-[300px] rounded-[5px] border-1"
+      />
+      <label for="age">Age:</label>
+      <input
+        type="number"
+        name="age"
+        id="age"
+        class="h-[30px] w-[300px] rounded-[5px] border-1"
+      />
+      <label for="city">City:</label>
+      <input
+        type="text"
+        name="city"
+        id="city"
+        class="h-[30px] w-[300px] rounded-[5px] border-1"
+      /><br />
+      <button
+        name="submit"
+        id="submit-btn"
+        class="h-[30px] w-[300px] rounded-[5px] border-1 cursor-pointer hover:bg-black hover:text-white"
+      >
+        Submit
+      </button>
+    </form>
+    <div
+      id="data1"
+      class="data flex flex-row flex-wrap align-center justify-start"
+    ></div>
+    <button
+      id="prev"
+      class="mt-[20px] ml-[20px] bg-orange-800 p-[10px] rounded-lg text-white cursor-pointer hover:bg-gray-800"
+    >
+      Prev
+    </button>
+    <button
+      id="next"
+      class="mt-[20px] ml-[10px] bg-orange-800 p-[10px] rounded-lg text-white cursor-pointer hover:bg-gray-800"
+    >
+      Next
+    </button>
+
+    <script
+      src="https://code.jquery.com/jquery-3.7.1.js"
+      integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+      crossorigin="anonymous"
+    ></script>
+    <script type="text/javascript">
+      var page = 1;
+      var container = document.getElementById("data1");
+      var nextBtn = document.getElementById("next");
+      var prevBtn = document.getElementById("prev");
+
+      $(document).ready(function () {
+        function loadTable() {
+          $.ajax({
+            url: `http://localhost/php-rest-api?page=${page}`,
+            type: "get",
+            success: function (response) {
+              // console.log(response);
+              let data = response.data;
+              if (data.length > 0) {
+                let html = "";
+                data.forEach((item) => {
+                  // console.log(item);
+                  html += `
+                    <div class="flex h-[300px] w-[300px] flex-col justify-center gap-2 rounded-lg border-1 bg-orange-800 text-center text-white mt-[20px] ml-[20px] transition-transform duration-300 hover:scale-105 cursor-pointer">
+                      <h3 class="text-[20px]">Name: ${item.name}</h3>
+                      <h3 class="text-[20px]">Age: ${item.age}</h3>
+                      <h3 class="text-[20px]">City: ${item.city}</h3>
+                      <button id="delete-btn" class="delete-btn border-1 h-[30px] w-[200px] mt-[10px] ml-[50px] rounded-[10px] cursor-pointer hover:bg-gray-900 " data-id=${item.id}>Delete</button>
+                    </div>
+                  `;
+                });
+                container.innerHTML = html;
+                prevBtn.disabled = page === 1;
+                nextBtn.disabled = data.length === 0;
+              } else {
+                nextBtn.disabled = true;
+                container.innerHTML = response.message;
+              }
+            },
+            error: function (err) {
+              console.log(err);
+            },
+          });
+        }
+        loadTable();
+        nextBtn.addEventListener("click", function () {
+          loadTable(++page);
+        });
+
+        prevBtn.addEventListener("click", function () {
+          if (page > 1) {
+            page--;
+            loadTable();
+          }
+        });
+
+        $("#submit-btn").on("click", function (e) {
+          e.preventDefault();
+          var sname = $("#name").val();
+          var sage = $("#age").val();
+          var scity = $("#city").val();
+
+          $.ajax({
+            url: `http://localhost/php-rest-api/api-insert.php`,
+            type: "POST",
+            data: { name: sname, age: sage, city: scity },
+            success: function (data) {
+              // console.log("Record Inserted");
+              $("#name").val("");
+              $("#age").val("");
+              $("#city").val("");
+              loadTable();
+              $("#message").load("Record Inserted");
+              // location.href = "./read.html";
+            },
+          });
+        });
+
+        $(document).on("click", ".delete-btn", function () {
+          var sid = $(this).data("id");
+          alert(sid);
+          $.ajax({
+            url: `http://localhost/php-rest-api/api-delete.php`,
+            type: "POST",
+            data: { id: sid },
+            success: function (response) {
+              let data = response.data;
+              console.log(data);
+            },
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
